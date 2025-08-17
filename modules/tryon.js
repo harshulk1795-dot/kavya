@@ -53,6 +53,7 @@ export function createTryOnSystem(THREE, scene, camera, renderer, app) {
 	// Panels notify via custom event
 	document.getElementById('panels-root')?.addEventListener('item-applied', (e) => {
 		applySelectedItem(e.detail);
+		try { window.__STORE__?.StoreApp?.rustleSound?.play && window.__STORE__.StoreApp.rustleSound.play(); } catch (err) {}
 	});
 
 	function update(dt) {
