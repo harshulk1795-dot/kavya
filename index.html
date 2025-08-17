@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Immersive 3D Fashion Store</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Renderer canvas -->
+  <canvas id="scene-canvas" aria-label="3D scene" tabindex="0"></canvas>
+
+  <!-- UI Root Containers -->
+  <div id="ui-root" aria-live="polite">
+    <div id="floating-icons"></div>
+    <div id="panels-root"></div>
+    <div id="tooltip" role="tooltip" hidden></div>
+  </div>
+
+  <!-- Import main module -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
