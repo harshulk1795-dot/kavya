@@ -3,10 +3,9 @@
 
 // Import Three.js from a CDN (pure ES module). No bundler required.
 // We pin a recent version known to support WebGL2 and WebAudio seamlessly.
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-import { RGBELoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/RGBELoader.js";
-import { RectAreaLightUniformsLib } from "https://unpkg.com/three@0.160.0/examples/jsm/lights/RectAreaLightUniformsLib.js";
+import * as THREE from "./libs/three/build/three.module.js";
+import { OrbitControls } from "./libs/three/examples/jsm/controls/OrbitControls.js";
+import { RectAreaLightUniformsLib } from "./libs/three/examples/jsm/lights/RectAreaLightUniformsLib.js";
 
 // Modules
 import { buildEnvironment } from "./modules/environment.js";

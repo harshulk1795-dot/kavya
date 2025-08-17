@@ -2,7 +2,7 @@
 // Virtual try-on: loads a simple avatar model (local GLTF) with graceful fallback, applies selected garments,
 // and features a reflective mirror inside a small trial room.
 
-import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+import { GLTFLoader } from "../libs/three/examples/jsm/loaders/GLTFLoader.js";
 
 export function createTryOnSystem(THREE, scene, camera, renderer, app) {
 	const group = new THREE.Group();
