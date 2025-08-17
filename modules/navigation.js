@@ -29,7 +29,8 @@ export function createNavigator(THREE, scene, camera, renderer, app, options = {
 		pitch.rotation.x -= e.movementY * settings.mouseSensitivity;
 		yaw.rotation.y -= e.movementX * settings.mouseSensitivity;
 		const lim = Math.PI / 2 - 0.05;
-		pitch.rotation.x = Math.max(-lim, Math.min(lim, pitch.rotation.x));
+		if (pitch.rotation.x < -lim) pitch.rotation.x = -lim;
+		if (pitch.rotation.x > lim) pitch.rotation.x = lim;
 	}
 
 	function onKeyDown(e) {
@@ -50,18 +51,24 @@ export function createNavigator(THREE, scene, camera, renderer, app, options = {
 	}
 
 	function requestPointerLock() {
-		renderer.domElement.requestPointerLock();
+		const el = renderer.domElement;
+		if (el && el.requestPointerLock) el.requestPointerLock();
 	}
 
 	function onPointerLockChange() {
 		state.isLocked = document.pointerLockElement === renderer.domElement;
 	}
 
+	function onCanvasFirstClick() {
+		if (!state.isLocked) requestPointerLock();
+	}
+
 	function onClick(e) {
 		// Teleport if clicking on a hotspot
 		const mouse = new THREE.Vector2();
-		mouse.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
-		mouse.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
+		const rect = renderer.domElement.getBoundingClientRect();
+		mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+		mouse.y = - ((e.clientY - rect.top) / rect.height) * 2 + 1;
 		const raycaster = new THREE.Raycaster();
 		raycaster.setFromCamera(mouse, camera);
 		const env = scene.userData.environment;
@@ -72,10 +79,7 @@ export function createNavigator(THREE, scene, camera, renderer, app, options = {
 			const target = hit.position.clone();
 			target.y = 0;
 			yaw.position.copy(target);
-			if (app && app.state && app.state.graphics) {
-				// small elevated pitch reset
-				pitch.rotation.set(0, 0, 0);
-			}
+			pitch.rotation.set(0, 0, 0);
 		}
 	}
 
@@ -84,6 +88,7 @@ export function createNavigator(THREE, scene, camera, renderer, app, options = {
 	document.addEventListener('keyup', onKeyUp);
 	document.addEventListener('pointerlockchange', onPointerLockChange);
 	renderer.domElement.addEventListener('click', onClick);
+	renderer.domElement.addEventListener('click', onCanvasFirstClick, { once: true });
 
 	function update(dt) {
 		const speed = settings.speed;
@@ -103,18 +108,11 @@ export function createNavigator(THREE, scene, camera, renderer, app, options = {
 		yaw.position.add(move);
 
 		// Footstep sound
-		if (app && app.state) {
-			const mag = move.length();
-			const now = performance.now();
-			if (mag > 0.001 && now - state.lastStepTime > 380) {
-				state.lastStepTime = now;
-				if (app && app.listener && app.renderer) {
-					const sfx = window.__STORE__ ? window.__STORE__.StoreApp : app;
-					if (sfx && sfx) {
-						try { app && app.footstepSound && app.footstepSound.play && app.footstepSound.play(); } catch (e) {}
-					}
-				}
-			}
+		const mag = move.length();
+		const now = performance.now();
+		if (mag > 0.001 && now - state.lastStepTime > 380) {
+			state.lastStepTime = now;
+			try { if (app.footstepSound && app.footstepSound.isPlaying === false) app.footstepSound.play(); } catch (e) {}
 		}
 
 		// Keep camera attached

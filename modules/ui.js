@@ -20,13 +20,13 @@ export function createUI(app, { ambientMusic, footstepSound, rustleSound, setGra
 		btn.setAttribute('aria-label', icon.title);
 		const img = document.createElement('img');
 		img.alt = '';
-		img.src = `./assets/icons/${icon.img}.svg`;
+		img.src = './assets/icons/' + icon.img + '.svg';
 		btn.appendChild(img);
 		root.appendChild(btn);
 
-		btn.addEventListener('click', () => onIconClick(icon.id));
-		btn.addEventListener('mouseenter', () => showTooltip(icon.title));
-		btn.addEventListener('mouseleave', () => showTooltip(''));
+		btn.addEventListener('click', function(){ onIconClick(icon.id); });
+		btn.addEventListener('mouseenter', function(){ showTooltip(icon.title); });
+		btn.addEventListener('mouseleave', function(){ showTooltip(''); });
 	}
 
 	function onIconClick(id) {
@@ -35,7 +35,7 @@ export function createUI(app, { ambientMusic, footstepSound, rustleSound, setGra
 				showTooltip('Teleporting to entrance');
 				const env = app.scene.userData.environment;
 				if (env) {
-					const entrance = env.hotspots.find(h => h.userData.teleport === 'Entrance');
+					const entrance = env.hotspots.find(function(h){ return h.userData.teleport === 'Entrance'; });
 					if (entrance && app.navigator && app.navigator.yaw) {
 						app.navigator.yaw.position.copy(entrance.position);
 						app.navigator.yaw.position.y = 0;
@@ -56,9 +56,8 @@ export function createUI(app, { ambientMusic, footstepSound, rustleSound, setGra
 				break;
 			}
 			case 'exit': {
-				// Release pointer lock and pause music
 				try { document.exitPointerLock(); } catch (e) {}
-				try { ambientMusic && ambientMusic.isPlaying && ambientMusic.pause(); } catch (e) {}
+				try { if (ambientMusic && ambientMusic.isPlaying) ambientMusic.pause(); } catch (e) {}
 				showTooltip('Pointer unlocked');
 				break;
 			}
@@ -67,22 +66,22 @@ export function createUI(app, { ambientMusic, footstepSound, rustleSound, setGra
 
 	function listToHtml(list) {
 		if (!list || list.length === 0) return '<p>Empty</p>';
-		return `<ul>${list.map(it => `<li>${it.name} - $${it.price}</li>`).join('')}</ul>`;
+		return '<ul>' + list.map(function(it){ return '<li>' + it.name + ' - $' + it.price + '</li>'; }).join('') + '</ul>';
 	}
 
 	function toggleCartPanel() {
 		const panelsRoot = document.getElementById('panels-root');
-		panelsRoot?.dispatchEvent(new CustomEvent('cart-toggle'));
+		if (panelsRoot) panelsRoot.dispatchEvent(new CustomEvent('cart-toggle'));
 	}
 
 	function openSettings() {
 		const panelsRoot = document.getElementById('panels-root');
-		panelsRoot?.dispatchEvent(new CustomEvent('settings-open'));
+		if (panelsRoot) panelsRoot.dispatchEvent(new CustomEvent('settings-open'));
 	}
 
 	function alertPanel(title, html) {
 		const panelsRoot = document.getElementById('panels-root');
-		panelsRoot?.dispatchEvent(new CustomEvent('alert-open', { detail: { title, html } }));
+		if (panelsRoot) panelsRoot.dispatchEvent(new CustomEvent('alert-open', { detail: { title: title, html: html } }));
 	}
 
 	function showTooltip(text) {
@@ -93,6 +92,6 @@ export function createUI(app, { ambientMusic, footstepSound, rustleSound, setGra
 	}
 
 	return {
-		showTooltip,
+		showTooltip: showTooltip,
 	};
 }

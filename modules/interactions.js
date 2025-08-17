@@ -46,21 +46,21 @@ export function createInteractionSystem(THREE, scene, camera, renderer, app) {
 		// Raycast from center of the screen for crosshair-like interaction
 		mouse.set(0, 0);
 		raycaster.setFromCamera(mouse, camera);
-		const candidates = itemsGroup.children.filter(m => m.userData.item);
+		const candidates = itemsGroup.children.filter(function(m){ return m.userData.item; });
 		const intersects = raycaster.intersectObjects(candidates, false);
 		if (intersects.length > 0) setHover(intersects[0].object); else setHover(null);
 	}
 
 	// Click to preview: update panels via app state
-	renderer.domElement.addEventListener('click', () => {
+	renderer.domElement.addEventListener('click', function() {
 		if (!hovered) return;
 		app.state.selectedItem = hovered.userData.item;
 		const panelsRoot = document.getElementById('panels-root');
-		panelsRoot?.dispatchEvent(new CustomEvent('item-selected', { detail: app.state.selectedItem }));
+		if (panelsRoot) panelsRoot.dispatchEvent(new CustomEvent('item-selected', { detail: app.state.selectedItem }));
 	});
 
 	// Simple texture inspect for hovered item on key press (I): toggles roughness
-	document.addEventListener('keydown', (e) => {
+	document.addEventListener('keydown', function(e) {
 		if (e.code === 'KeyI' && hovered && hovered.material) {
 			hovered.material.roughness = hovered.material.roughness > 0.4 ? 0.2 : 0.8;
 			hovered.material.needsUpdate = true;

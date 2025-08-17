@@ -68,9 +68,9 @@ const rustleSound = new THREE.Audio(listener);
 
 // Simple loading manager to reflect readiness
 const loadingManager = new THREE.LoadingManager();
-loadingManager.onStart = () => setTooltip("Loading assets...");
-loadingManager.onLoad = () => setTooltip("Welcome! WASD to move, mouse to look.");
-loadingManager.onError = (url) => console.warn("Failed to load:", url);
+loadingManager.onStart = function() { setTooltip("Loading assets..."); };
+loadingManager.onLoad = function() { setTooltip("Welcome! WASD to move, mouse to look."); };
+loadingManager.onError = function(url) { console.warn("Failed to load:", url); };
 
 // HDRI / Environment (optional subtle reflections). Using RGBELoader from examples.
 // For fully offline, we skip network env maps and rely on local lighting.
@@ -91,7 +91,7 @@ StoreApp.rustleSound = rustleSound;
 StoreApp.ambientMusic = ambientMusic;
 
 // Resize handling
-window.addEventListener("resize", () => {
+window.addEventListener("resize", function() {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -125,22 +125,22 @@ const ui = createUI(StoreApp, {
 	ambientMusic,
 	footstepSound,
 	rustleSound,
-	setGraphics: (quality) => optimization.setGraphics(quality),
+	setGraphics: function(quality) { optimization.setGraphics(quality); },
 });
 const panels = createPanels(StoreApp, interactions, tryOn);
 
 // Audio buffer loading (placeholders). Files are empty/silent if not provided.
 const audioLoader = new THREE.AudioLoader(loadingManager);
-audioLoader.load("./audio/ambient.mp3", (buffer) => {
+audioLoader.load("./audio/ambient.mp3", function(buffer) {
 	ambientMusic.setBuffer(buffer);
 	ambientMusic.setLoop(true);
 	ambientMusic.setVolume(0.35);
 });
-audioLoader.load("./audio/footstep.mp3", (buffer) => {
+audioLoader.load("./audio/footstep.mp3", function(buffer) {
 	footstepSound.setBuffer(buffer);
 	footstepSound.setVolume(0.5);
 });
-audioLoader.load("./audio/rustle.mp3", (buffer) => {
+audioLoader.load("./audio/rustle.mp3", function(buffer) {
 	rustleSound.setBuffer(buffer);
 	rustleSound.setVolume(0.5);
 });
@@ -149,13 +149,21 @@ audioLoader.load("./audio/rustle.mp3", (buffer) => {
 const entryOverlay = document.getElementById("entry-overlay");
 const enterBtn = document.getElementById("enter-btn");
 
-enterBtn.addEventListener("click", async () => {
-	entryOverlay.style.display = "none";
-	// Play ambient music when unlocked
-	try { ambientMusic.play(); } catch (e) {}
-	// Request pointer lock through navigator module
-	navigator.requestPointerLock();
-	setTooltip("Explore the store. Aim at items to preview.");
+if (enterBtn) {
+	enterBtn.addEventListener("click", function() {
+		entryOverlay.style.display = "none";
+		try { ambientMusic.play(); } catch (e) {}
+		navigator.requestPointerLock();
+		setTooltip("Explore the store. Aim at items to preview.");
+	});
+}
+
+// Fallback: clicking the canvas also enters
+renderer.domElement.addEventListener('click', function(){
+	if (entryOverlay && entryOverlay.style.display !== 'none') {
+		entryOverlay.style.display = 'none';
+		try { ambientMusic.play(); } catch (e) {}
+	}
 });
 
 // Tooltip helper
@@ -174,10 +182,10 @@ function animate() {
 	navigator.update(dt);
 	interactions.update(dt);
 	tryOn.update(dt);
-	for (const mixer of StoreApp.mixers) mixer.update(dt);
+	for (let i = 0; i < StoreApp.mixers.length; i++) StoreApp.mixers[i].update(dt);
 	renderer.render(scene, camera);
 }
 animate();
 
 // Expose some controls for debugging via console
-window.__STORE__ = { THREE, StoreApp, scene, camera, renderer };
+window.__STORE__ = { THREE: THREE, StoreApp: StoreApp, scene: scene, camera: camera, renderer: renderer };
