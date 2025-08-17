@@ -15,7 +15,7 @@ export function createTryOnSystem(THREE, scene, camera, renderer, app) {
 	const back = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 0.1), roomMat); back.position.set(0, 1.5, -2.5);
 	const left = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3, 5), roomMat); left.position.set(-3, 1.5, 0);
 	const right = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3, 5), roomMat); right.position.set(3, 1.5, 0);
-	[back, left, right].forEach(m => { m.castShadow = true; m.receiveShadow = true; group.add(m); });
+	[back, left, right].forEach(function(m){ m.castShadow = true; m.receiveShadow = true; group.add(m); });
 
 	// Floor
 	const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 5), new THREE.MeshStandardMaterial({ color: 0x0f121a, roughness: 0.8 }));
@@ -44,27 +44,27 @@ export function createTryOnSystem(THREE, scene, camera, renderer, app) {
 
 	// Try to load a tiny local GLTF avatar
 	const loader = new GLTFLoader();
-	loader.load("./assets/models/avatar.gltf", (gltf) => {
-		const model = gltf.scene || gltf.scenes?.[0];
+	loader.load("./assets/models/avatar.gltf", function(gltf) {
+		var model = gltf.scene ? gltf.scene : (gltf.scenes && gltf.scenes[0] ? gltf.scenes[0] : null);
 		if (model) {
-			model.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+			model.traverse(function(n){ if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
 			model.scale.set(1.2, 1.2, 1.2);
 			model.position.set(0, 0, 0);
 			placeholder.visible = false;
 			group.add(model);
 		}
-	}, undefined, (err) => {
+	}, undefined, function(err) {
 		// Fallback silently to placeholder
-		console.warn("Avatar GLTF failed to load, using placeholder.", err?.message || err);
+		try { console.warn("Avatar GLTF failed to load, using placeholder.", err); } catch (e) {}
 	});
 
 	function applySelectedItem(item) {
 		if (!item) return;
 		// Map item id to stylistic colors as a placeholder
-		const colorMap = {
+		var colorMap = {
 			w_dress: 0xff6b9a,
 			m_jacket: 0x74c0fc,
-			a_bag: 0x69db7c,
+			a_bag: 0x69db7c
 		};
 		garmentMat.color.setHex(colorMap[item.id] || 0xffffff);
 		garmentMat.metalness = item.id === 'a_bag' ? 0.6 : 0.2;
@@ -73,10 +73,13 @@ export function createTryOnSystem(THREE, scene, camera, renderer, app) {
 	}
 
 	// Panels notify via custom event
-	document.getElementById('panels-root')?.addEventListener('item-applied', (e) => {
-		applySelectedItem(e.detail);
-		try { window.__STORE__?.StoreApp?.rustleSound?.play && window.__STORE__.StoreApp.rustleSound.play(); } catch (err) {}
-	});
+	var panelsRoot = document.getElementById('panels-root');
+	if (panelsRoot) {
+		panelsRoot.addEventListener('item-applied', function(e){
+			applySelectedItem(e.detail);
+			try { if (window.__STORE__ && window.__STORE__.StoreApp && window.__STORE__.StoreApp.rustleSound) window.__STORE__.StoreApp.rustleSound.play(); } catch (err) {}
+		});
+	}
 
 	function update(dt) {
 		// idle motion for life
@@ -85,14 +88,17 @@ export function createTryOnSystem(THREE, scene, camera, renderer, app) {
 	}
 
 	return {
-		update,
-		applySelectedItem,
-		group,
+		update: update,
+		applySelectedItem: applySelectedItem,
+		group: group
 	};
 }
 
 // Simple planar mirror with render target for the try-on room
-function createMirror(THREE, renderer, { width = 2, height = 2 } = {}) {
+function createMirror(THREE, renderer, options) {
+	options = options || {};
+	const width = options.width || 2;
+	const height = options.height || 2;
 	const mirrorGroup = new THREE.Group();
 	const planeGeo = new THREE.PlaneGeometry(width, height);
 	const renderTarget = new THREE.WebGLRenderTarget(512, 512, { generateMipmaps: true });
@@ -103,7 +109,7 @@ function createMirror(THREE, renderer, { width = 2, height = 2 } = {}) {
 	mirrorMesh.receiveShadow = false;
 	mirrorGroup.add(mirrorMesh);
 
-	mirrorGroup.onBeforeRender = (rendererIn, scene, camera) => {
+	mirrorGroup.onBeforeRender = function(rendererIn, scene, camera) {
 		const oldTarget = renderer.getRenderTarget();
 		const mirrorCam = camera.clone();
 		mirrorCam.position.set(0, camera.position.y, camera.position.z + 0.001);

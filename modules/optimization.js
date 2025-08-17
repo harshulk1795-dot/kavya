@@ -32,16 +32,14 @@ export function createOptimization(THREE, renderer, scene) {
 		});
 	}
 
-	// Simple LOD creation for a mesh (not used heavily here but provided)
 	function createLOD(high, medium, low, distances = [0, 15, 35]) {
 		const lod = new THREE.LOD();
 		lod.addLevel(high, distances[0]);
 		lod.addLevel(medium || high.clone(), distances[1]);
-		lod.addLevel(low || medium?.clone() || high.clone(), distances[2]);
+		lod.addLevel(low || (medium ? medium.clone() : high.clone()), distances[2]);
 		return lod;
 	}
 
-	// Texture streaming placeholder
 	function streamTexture(url, material, onLoaded) {
 		const loader = new THREE.TextureLoader();
 		const tiny = document.createElement('canvas');
@@ -56,7 +54,6 @@ export function createOptimization(THREE, renderer, scene) {
 		});
 	}
 
-	// Listen to graphics change event
 	document.addEventListener('graphics-change', (e) => setGraphics(e.detail));
 
 	return { setGraphics, createLOD, streamTexture };
